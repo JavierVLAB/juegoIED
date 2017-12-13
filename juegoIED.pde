@@ -4,6 +4,7 @@ PImage rockImg;
 
 void setup() {
   size(640, 480);
+  imageMode(CENTER);
   rockImg = loadImage("rock01.png");
   starfield = new Starfield( 100 );
   rocks = new ArrayList<Rock>();
