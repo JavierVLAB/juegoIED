@@ -6,7 +6,8 @@ import blobscanner.*;
 Starfield starfield;
 ArrayList<Rock> rocks;
 PImage rockImg;
-
+PImage[] spaceImages;
+PImage boomImg;
 Detector bd;
 
 
@@ -14,7 +15,7 @@ Detector bd;
 
 Capture video;
 boolean showVideo = false;
-boolean showCalibration = true;
+boolean showCalibration = false;
 float xMin = 0;
 float xMax = 1000;
 float yMin = 0;
@@ -28,15 +29,24 @@ void setup() {
   fullScreen();
   imageMode(CENTER);
   rockImg = loadImage("rock01.png");
+  boomImg = loadImage("explosion.png");
   starfield = new Starfield( 100 );
   rocks = new ArrayList<Rock>();
   rocks.add(new Rock());
-  video = new Capture(this,640,480);
+  video = new Capture(this,320,240);
   bd = new Detector( this, 255 );
   video.start();
   frameRate( 25 );
   smooth();
   //println(cameras);
+  
+  String[] filenames = listFileNames(dataPath("ships"));
+  spaceImages = new PImage [filenames.length]; //array of original images
+ 
+  for (int i=0; i<spaceImages.length; i++) { 
+    spaceImages[i] = loadImage ("ships/"+ filenames[i]); //load each image
+  }
+  
 }
 
 void draw() {
@@ -61,15 +71,12 @@ void draw() {
     float x, y;
     x = map(bd.getCentroidX(i),0,img.width,xMin,xMax);
     y = map(bd.getCentroidY(i),0,img.height,yMin,yMax);
-    x = bd.getCentroidX(i);
-    y = bd.getCentroidY(i);
-    //x = map(x,xMin,xMax,100,(float) width)-100;
-    //sy = map(y,yMin,yMax,100,(float) height-100);
+    
     ellipse(x,y,20,20);
     point(x,y);
     for (int j = rocks.size()-1; j >= 0; j--) {
       Rock r = rocks.get(j);
-      r.shutInside(bd.getCentroidX(i), bd.getCentroidY(i));
+      r.shutInside(x, y);
     }
   }
   
@@ -100,20 +107,32 @@ void draw() {
           yMin = bd.getCentroidY(0);
           print("xMin : ");
           println(xMin);
-          print("yMin : ");
+          print(",  yMin : ");
           println(yMin);
         break;
         case '2':
           xMax = bd.getCentroidX(0);
           yMax = bd.getCentroidY(0);
           print("xMax : ");
-          println(xMax);
-          print("yMax : ");
+          print(xMax);
+          print(",  yMax : ");
           println(yMax);
         break;
         
       }
     }
+  }
+  
+  //New Rocks
+  
+  if(random(1) < 0.04){
+    Rock r = new Rock();
+    rocks.add(r);
+  }
+  
+  if(random(1) < 0.01){
+    Ship s = new Ship();
+    rocks.add(s);
   }
   
 
@@ -162,4 +181,15 @@ void calibration(){
   ellipse(space,height-space, diameter, diameter);
   ellipse(width-space,height-space, diameter, diameter);
   
+}
+
+String[] listFileNames(String dir) {
+  File file = new File(dir);
+  if (file.isDirectory()) {
+    String names[] = file.list();
+    return names;
+  } else {
+    // If it's not a directory
+    return null;
+  }
 }
